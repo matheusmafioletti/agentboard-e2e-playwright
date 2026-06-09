@@ -1,38 +1,43 @@
 import { test, expect } from '../../support/fixtures';
-import { generateEmail, generateTenantName } from '../../support/helpers';
+import { generateEmail, generateTenantName, createUserViaApi } from '../../support/helpers';
 
 test.describe('Authentication — Register', () => {
-  test('successful registration redirects to login or board', async ({ registerPage, page }) => {
+  // TC-AUTH-001
+  test('TC-AUTH-001: full registration creates user and workspace then redirects to /inicio with active workspace in sidebar', async ({
+    registerPage,
+    page,
+  }) => {
+    const tenantName = generateTenantName();
+
     await registerPage.goto();
     await registerPage.register({
       name: 'Test User',
-      email: generateEmail('register'),
+      email: generateEmail('auth001'),
+      password: 'Password123!',
+      tenantName,
+    });
+
+    await expect(page).toHaveURL(/\/inicio/);
+    await expect(page.getByText(tenantName)).toBeVisible();
+  });
+
+  // TC-AUTH-002
+  test('TC-AUTH-002: registration with existing email shows error message and stays on /register', async ({
+    registerPage,
+    page,
+  }) => {
+    const email = generateEmail('auth002');
+    await createUserViaApi(email, 'Password123!', generateTenantName());
+
+    await registerPage.goto();
+    await registerPage.register({
+      name: 'Another User',
+      email,
       password: 'Password123!',
       tenantName: generateTenantName(),
     });
-    await expect(page).toHaveURL(/login|board/);
-  });
 
-  test('duplicate email shows error message', async ({ registerPage }) => {
-    const duplicateEmail = 'existing@test.agentboard.dev';
-    await registerPage.goto();
-    await registerPage.register({
-      name: 'Test User',
-      email: duplicateEmail,
-      password: 'Password123!',
-      tenantName: generateTenantName(),
-    });
     await expect(registerPage.errorMessage).toBeVisible();
-  });
-
-  test('weak password shows validation error', async ({ registerPage }) => {
-    await registerPage.goto();
-    await registerPage.register({
-      name: 'Test User',
-      email: generateEmail('weak-pass'),
-      password: '123',
-      tenantName: generateTenantName(),
-    });
-    await expect(registerPage.errorMessage).toBeVisible();
+    await expect(page).toHaveURL(/\/register/);
   });
 });

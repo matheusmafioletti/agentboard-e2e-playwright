@@ -17,8 +17,9 @@ export class InviteAcceptPage extends BasePage {
     this.successMessage = page.getByRole('status');
   }
 
+  // NOTE: route is /invite/:token (path param, not query string)
   async gotoWithToken(token: string): Promise<void> {
-    await this.navigate(`/invite/accept?token=${token}`);
+    await this.navigate(`/invite/${token}`);
   }
 
   async acceptInvite(): Promise<void> {
