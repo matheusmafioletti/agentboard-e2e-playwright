@@ -6,8 +6,7 @@ import {
   createProjectViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const BOARD_API_URL = process.env.BOARD_API_URL ?? 'http://localhost:8081';
+import { env } from '../../support/environment';
 
 test.describe('Projects', () => {
   test.beforeEach(async ({ page }) => {
@@ -51,7 +50,7 @@ test.describe('Projects', () => {
     });
 
     const project = await createProjectViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       user.jwt,
       user.tenantId,
       `DetailProj-${Date.now()}`
@@ -80,7 +79,7 @@ test.describe('Projects', () => {
     });
 
     const project = await createProjectViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       user.jwt,
       user.tenantId,
       `ActiveProj-${Date.now()}`

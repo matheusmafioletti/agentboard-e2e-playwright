@@ -7,8 +7,7 @@ import {
   createWorkItemViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const BOARD_API_URL = process.env.BOARD_API_URL ?? 'http://localhost:8081';
+import { env } from '../../support/environment';
 
 test.describe('Items List View', () => {
   let userJwt: string;
@@ -22,7 +21,7 @@ test.describe('Items List View', () => {
     tenantId = user.tenantId;
 
     const project = await createProjectViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       `ItemsProj-${Date.now()}`
@@ -60,7 +59,7 @@ test.describe('Items List View', () => {
     const taskTitle = `Task-${Date.now()}`;
 
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -68,7 +67,7 @@ test.describe('Items List View', () => {
       'FEATURE'
     );
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -98,7 +97,7 @@ test.describe('Items List View', () => {
   }) => {
     const itemTitle = `ClickItem-${Date.now()}`;
     const item = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -126,7 +125,7 @@ test.describe('Items List View', () => {
     const taskTitle = `TaskTree-${Date.now()}`;
 
     const feature = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -134,7 +133,7 @@ test.describe('Items List View', () => {
       'FEATURE'
     );
     const story = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -143,7 +142,7 @@ test.describe('Items List View', () => {
       feature.id
     );
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,

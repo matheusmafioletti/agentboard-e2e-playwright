@@ -1,30 +1,11 @@
 import { test, expect } from '../../support/fixtures';
-import { generateEmail, generateTenantName, createUserViaApi } from '../../support/helpers';
-
-const BOARD_API_URL = process.env.BOARD_API_URL ?? 'http://localhost:8081';
-
-async function sendInviteViaApi(
-  tenantId: string,
-  jwt: string,
-  inviteeEmail: string
-): Promise<string> {
-  const response = await fetch(`${BOARD_API_URL}/api/tenants/${tenantId}/invites`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${jwt}`,
-    },
-    body: JSON.stringify({ email: inviteeEmail }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Invite failed (${response.status}): ${body}`);
-  }
-
-  const data = await response.json() as { token: string };
-  return data.token;
-}
+import {
+  generateEmail,
+  generateTenantName,
+  createUserViaApi,
+  createInviteViaApi,
+} from '../../support/helpers';
+import { env } from '../../support/environment';
 
 test.describe('Invite Flow', () => {
   test('invited user can accept invite and join tenant', async ({
@@ -37,7 +18,12 @@ test.describe('Invite Flow', () => {
     const inviteeEmail = generateEmail('invitee');
 
     const owner = await createUserViaApi(ownerEmail, 'Password123!', tenantName);
-    const inviteToken = await sendInviteViaApi(owner.tenantId, owner.jwt, inviteeEmail);
+    const { token: inviteToken } = await createInviteViaApi(
+      env.authApiUrl,
+      owner.jwt,
+      owner.tenantId,
+      inviteeEmail
+    );
 
     await registerPage.goto();
     await registerPage.register({
@@ -67,7 +53,12 @@ test.describe('Invite Flow', () => {
     const inviteeEmail = generateEmail('decliner');
 
     const owner = await createUserViaApi(ownerEmail, 'Password123!', tenantName);
-    const inviteToken = await sendInviteViaApi(owner.tenantId, owner.jwt, inviteeEmail);
+    const { token: inviteToken } = await createInviteViaApi(
+      env.authApiUrl,
+      owner.jwt,
+      owner.tenantId,
+      inviteeEmail
+    );
 
     await inviteAcceptPage.gotoWithToken(inviteToken);
     await inviteAcceptPage.declineInvite();

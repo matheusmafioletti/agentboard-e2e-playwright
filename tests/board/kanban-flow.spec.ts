@@ -7,8 +7,7 @@ import {
   createWorkItemViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const BOARD_API_URL = process.env.BOARD_API_URL ?? 'http://localhost:8081';
+import { env } from '../../support/environment';
 
 test.describe('Kanban Board — Work Item Flow', () => {
   let userJwt: string;
@@ -25,7 +24,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     tenantId = user.tenantId;
 
     const project = await createProjectViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       `Project-${Date.now()}`
@@ -91,7 +90,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
   }) => {
     const title = `DragTask-${Date.now()}`;
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -124,7 +123,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     const story2Title = `Story2-${Date.now()}`;
 
     const feature = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -132,7 +131,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       'FEATURE'
     );
     const story1 = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -141,7 +140,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       feature.id
     );
     const story2 = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -153,7 +152,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     const task1 = `Task1-${Date.now()}`;
     const task2 = `Task2-${Date.now()}`;
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -162,7 +161,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       story1.id
     );
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -190,7 +189,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     const storyTitle = `Story-${Date.now()}`;
 
     const feature = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -198,7 +197,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       'FEATURE'
     );
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -223,7 +222,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
   }) => {
     const featureTitle = `Feature-${Date.now()}`;
     const feature = await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,
@@ -245,7 +244,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
   }) => {
     const taskTitle = `TaskModal-${Date.now()}`;
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       userJwt,
       tenantId,
       projectId,

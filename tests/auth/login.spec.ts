@@ -5,8 +5,7 @@ import {
   createUserViaApi,
   createSecondTenantViaApi,
 } from '../../support/helpers';
-
-const AUTH_API_URL = process.env.AUTH_API_URL ?? 'http://localhost:8080';
+import { env } from '../../support/environment';
 
 test.describe('Authentication — Login', () => {
   // TC-AUTH-003
@@ -36,7 +35,7 @@ test.describe('Authentication — Login', () => {
     const firstTenant = generateTenantName();
 
     const user = await createUserViaApi(email, password, firstTenant);
-    await createSecondTenantViaApi(AUTH_API_URL, user.jwt, generateTenantName());
+    await createSecondTenantViaApi(env.authApiUrl, user.jwt, generateTenantName());
 
     await loginPage.goto();
     await loginPage.login(email, password);

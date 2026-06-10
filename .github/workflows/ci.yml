@@ -46,9 +46,10 @@ jobs:
       - name: Run E2E tests
         run: npm test -- --project=${{ github.event.inputs.browser || 'chromium' }}
         env:
-          BASE_URL: ${{ vars.STAGING_URL || 'http://localhost:5173' }}
-          AUTH_API_URL: ${{ vars.AUTH_API_URL || 'http://localhost:8080' }}
-          BOARD_API_URL: ${{ vars.BOARD_API_URL || 'http://localhost:8081' }}
+          ENVIRONMENT: staging
+          BASE_URL: ${{ vars.BASE_URL || 'https://agentboard.matheusmafioletti.com' }}
+          AUTH_API_URL: ${{ vars.AUTH_API_URL || 'https://agentboard.matheusmafioletti.com' }}
+          BOARD_API_URL: ${{ vars.BOARD_API_URL || 'https://agentboard.matheusmafioletti.com' }}
           CI: true
 
       - name: Upload Allure results

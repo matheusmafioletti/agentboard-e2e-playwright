@@ -1,9 +1,5 @@
-import * as dotenv from 'dotenv';
 import type { Page } from '@playwright/test';
-
-dotenv.config();
-
-const AUTH_API_URL_DEFAULT = process.env.AUTH_API_URL ?? 'http://localhost:8080';
+import { env } from './environment';
 
 export function generateEmail(prefix = 'user'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@test.agentboard.dev`;
@@ -37,7 +33,7 @@ export async function createUserViaApi(
   password: string,
   tenantName: string
 ): Promise<UserCredentials> {
-  const registerResponse = await fetch(`${AUTH_API_URL_DEFAULT}/api/auth/register`, {
+  const registerResponse = await fetch(`${env.authApiUrl}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: 'Test User', email, password, tenantName }),
@@ -55,7 +51,7 @@ export async function createUserViaApi(
     role?: string;
   };
 
-  const loginResponse = await fetch(`${AUTH_API_URL_DEFAULT}/api/auth/login`, {
+  const loginResponse = await fetch(`${env.authApiUrl}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -98,7 +94,7 @@ export async function createSecondTenantViaApi(
   jwt: string,
   tenantName: string
 ): Promise<{ tenantId: string; tenantName: string }> {
-  const response = await fetch(`${authApiUrl}/api/auth/tenants`, {
+  const response = await fetch(`${authApiUrl}/auth/tenants`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -123,7 +119,7 @@ export async function createInviteViaApi(
   email: string
 ): Promise<{ token: string; inviteId: string }> {
   const response = await fetch(
-    `${authApiUrl}/api/auth/tenants/${tenantId}/invites`,
+    `${authApiUrl}/auth/tenants/${tenantId}/invites`,
     {
       method: 'POST',
       headers: {
@@ -166,7 +162,7 @@ export async function createProjectViaApi(
   tenantId: string,
   name: string
 ): Promise<{ id: string; name: string }> {
-  const response = await fetch(`${boardApiUrl}/api/projects`, {
+  const response = await fetch(`${boardApiUrl}/api/v1/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -198,7 +194,7 @@ export async function createWorkItemViaApi(
   if (parentId) body['parentId'] = parentId;
 
   const response = await fetch(
-    `${boardApiUrl}/api/projects/${projectId}/work-items`,
+    `${boardApiUrl}/api/v1/work-items?projectId=${encodeURIComponent(projectId)}`,
     {
       method: 'POST',
       headers: {

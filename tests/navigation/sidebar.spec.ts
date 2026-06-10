@@ -7,8 +7,7 @@ import {
   createWorkItemViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const BOARD_API_URL = process.env.BOARD_API_URL ?? 'http://localhost:8081';
+import { env } from '../../support/environment';
 
 test.describe('Sidebar Navigation', () => {
   // TC-NAV-001
@@ -57,14 +56,14 @@ test.describe('Sidebar Navigation', () => {
     const user = await createUserViaApi(email, 'Password123!', generateTenantName());
 
     const project = await createProjectViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       user.jwt,
       user.tenantId,
       `NavProj-${Date.now()}`
     );
 
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       user.jwt,
       user.tenantId,
       project.id,
@@ -72,7 +71,7 @@ test.describe('Sidebar Navigation', () => {
       'FEATURE'
     );
     await createWorkItemViaApi(
-      BOARD_API_URL,
+      env.boardApiUrl,
       user.jwt,
       user.tenantId,
       project.id,

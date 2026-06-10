@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
+import { resolveEnvironment } from './support/environment';
 
 dotenv.config();
+
+const env = resolveEnvironment();
 
 export default defineConfig({
   testDir: './tests',
@@ -15,7 +18,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: env.baseUrl,
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'on-first-retry',

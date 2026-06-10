@@ -6,8 +6,7 @@ import {
   createInviteViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const AUTH_API_URL = process.env.AUTH_API_URL ?? 'http://localhost:8080';
+import { env } from '../../support/environment';
 
 test.describe('Users & Invites Management', () => {
   // TC-USERS-001
@@ -91,7 +90,7 @@ test.describe('Users & Invites Management', () => {
     const admin = await createUserViaApi(adminEmail, 'Password123!', generateTenantName());
 
     const inviteeEmail = generateEmail('invitee004');
-    await createInviteViaApi(AUTH_API_URL, admin.jwt, admin.tenantId, inviteeEmail);
+    await createInviteViaApi(env.authApiUrl, admin.jwt, admin.tenantId, inviteeEmail);
 
     await setAuthInLocalStorage(page, admin.jwt, {
       userId: admin.userId,
@@ -119,7 +118,7 @@ test.describe('Users & Invites Management', () => {
 
     const inviteeEmail = generateEmail('invitee005');
     const { token } = await createInviteViaApi(
-      AUTH_API_URL,
+      env.authApiUrl,
       admin.jwt,
       admin.tenantId,
       inviteeEmail

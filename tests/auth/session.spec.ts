@@ -6,8 +6,7 @@ import {
   createSecondTenantViaApi,
   setAuthInLocalStorage,
 } from '../../support/helpers';
-
-const AUTH_API_URL = process.env.AUTH_API_URL ?? 'http://localhost:8080';
+import { env } from '../../support/environment';
 
 test.describe('Authentication — Session Management', () => {
   // TC-AUTH-007
@@ -48,7 +47,7 @@ test.describe('Authentication — Session Management', () => {
     const secondTenant = generateTenantName();
 
     const user = await createUserViaApi(email, password, firstTenant);
-    await createSecondTenantViaApi(AUTH_API_URL, user.jwt, secondTenant);
+    await createSecondTenantViaApi(env.authApiUrl, user.jwt, secondTenant);
 
     // Login via UI to establish multi-tenant session
     await page.goto('/login');
