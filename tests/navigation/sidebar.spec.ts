@@ -1,19 +1,12 @@
 import { test, expect } from '../../support/fixtures';
-import {
-  generateEmail,
-  generateTenantName,
-  createUserViaApi,
-  createProjectViaApi,
-  createWorkItemViaApi,
-  setAuthInLocalStorage,
-} from '../../support/helpers';
-import { env } from '../../support/environment';
+import { testData } from '../../api/services/TestDataService';
+import { setAuthInLocalStorage } from '../../support/browser';
+import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Sidebar Navigation', () => {
-  // TC-NAV-001
-  test('TC-NAV-001: ADMIN user sees "Usuários" link in sidebar', async ({ dashboardPage, page }) => {
+  test('ADMIN user sees "Usuários" link in sidebar', async ({ dashboardPage, page }) => {
     const email = generateEmail('nav001');
-    const user = await createUserViaApi(email, 'Password123!', generateTenantName());
+    const user = await testData.createAuthenticatedUser(email, 'Password123!', generateTenantName());
 
     await setAuthInLocalStorage(page, user.jwt, {
       userId: user.userId,
@@ -26,14 +19,12 @@ test.describe('Sidebar Navigation', () => {
     await dashboardPage.goto();
     await expect(dashboardPage.getNavLink(/usuários|users/i)).toBeVisible();
   });
-
-  // TC-NAV-002
-  test('TC-NAV-002: USER role does not see "Usuários" link in sidebar', async ({
+  test('USER role does not see "Usuários" link in sidebar', async ({
     dashboardPage,
     page,
   }) => {
     const email = generateEmail('nav002');
-    const user = await createUserViaApi(email, 'Password123!', generateTenantName());
+    const user = await testData.createAuthenticatedUser(email, 'Password123!', generateTenantName());
 
     await setAuthInLocalStorage(page, user.jwt, {
       userId: user.userId,
@@ -46,32 +37,27 @@ test.describe('Sidebar Navigation', () => {
     await dashboardPage.goto();
     await expect(dashboardPage.getNavLink(/usuários|users/i)).not.toBeVisible();
   });
-
-  // TC-NAV-003
-  test('TC-NAV-003: /inicio with active project shows SummaryCards with visible counters', async ({
+  test('/inicio with active project shows SummaryCards with visible counters', async ({
     dashboardPage,
     page,
   }) => {
     const email = generateEmail('nav003');
-    const user = await createUserViaApi(email, 'Password123!', generateTenantName());
+    const user = await testData.createAuthenticatedUser(email, 'Password123!', generateTenantName());
 
-    const project = await createProjectViaApi(
-      env.boardApiUrl,
+    const project = await testData.createProject(
       user.jwt,
       user.tenantId,
       `NavProj-${Date.now()}`
     );
 
-    await createWorkItemViaApi(
-      env.boardApiUrl,
+    await testData.createWorkItem(
       user.jwt,
       user.tenantId,
       project.id,
       `Feature-${Date.now()}`,
       'FEATURE'
     );
-    await createWorkItemViaApi(
-      env.boardApiUrl,
+    await testData.createWorkItem(
       user.jwt,
       user.tenantId,
       project.id,

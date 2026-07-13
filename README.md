@@ -99,10 +99,30 @@ test('login works', async ({ loginPage, page }) => {
 });
 ```
 
-### API Helpers (`support/helpers.ts`)
+### API Clients & Test Data Service (`api/`)
 
-`createUserViaApi` sets up test users directly through the REST API — bypassing the UI registration form.
-This makes `beforeEach` hooks fast and deterministic, avoiding flaky UI-driven setup.
+HTTP calls are organized into service-specific clients that read base URLs from `support/environment.ts`:
+
+| Layer | Path | Responsibility |
+|---|---|---|
+| `BaseApiClient` | `api/clients/BaseApiClient.ts` | Shared `fetch`, JSON headers, error handling |
+| `AuthApiClient` | `api/clients/AuthApiClient.ts` | Register, login, tenants, invites |
+| `BoardApiClient` | `api/clients/BoardApiClient.ts` | Projects, work-items |
+| `TestDataService` | `api/services/TestDataService.ts` | High-level test setup workflows |
+
+Tests import the singleton `testData` service for API setup — bypassing UI forms for fast, deterministic `beforeEach` hooks:
+
+```typescript
+import { testData } from '../../api/services/TestDataService';
+import { generateEmail, generateTenantName } from '../../support/generators';
+import { setAuthInLocalStorage } from '../../support/browser';
+
+const user = await testData.createAuthenticatedUser(email, password, generateTenantName());
+const project = await testData.createProject(user.jwt, user.tenantId, 'My Project');
+await setAuthInLocalStorage(page, user.jwt, { userId: user.userId, ... });
+```
+
+Domain types live in `api/types/` (`auth.types.ts`, `board.types.ts`). Generators and browser helpers remain in `support/generators.ts` and `support/browser.ts`.
 
 ---
 

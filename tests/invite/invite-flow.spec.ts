@@ -1,11 +1,6 @@
 import { test, expect } from '../../support/fixtures';
-import {
-  generateEmail,
-  generateTenantName,
-  createUserViaApi,
-  createInviteViaApi,
-} from '../../support/helpers';
-import { env } from '../../support/environment';
+import { testData } from '../../api/services/TestDataService';
+import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Invite Flow', () => {
   test('invited user can accept invite and join tenant', async ({
@@ -17,9 +12,8 @@ test.describe('Invite Flow', () => {
     const tenantName = generateTenantName();
     const inviteeEmail = generateEmail('invitee');
 
-    const owner = await createUserViaApi(ownerEmail, 'Password123!', tenantName);
-    const { token: inviteToken } = await createInviteViaApi(
-      env.authApiUrl,
+    const owner = await testData.createAuthenticatedUser(ownerEmail, 'Password123!', tenantName);
+    const { token: inviteToken } = await testData.createInvite(
       owner.jwt,
       owner.tenantId,
       inviteeEmail
@@ -52,9 +46,8 @@ test.describe('Invite Flow', () => {
     const tenantName = generateTenantName();
     const inviteeEmail = generateEmail('decliner');
 
-    const owner = await createUserViaApi(ownerEmail, 'Password123!', tenantName);
-    const { token: inviteToken } = await createInviteViaApi(
-      env.authApiUrl,
+    const owner = await testData.createAuthenticatedUser(ownerEmail, 'Password123!', tenantName);
+    const { token: inviteToken } = await testData.createInvite(
       owner.jwt,
       owner.tenantId,
       inviteeEmail

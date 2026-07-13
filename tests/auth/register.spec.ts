@@ -1,9 +1,9 @@
 import { test, expect } from '../../support/fixtures';
-import { generateEmail, generateTenantName, createUserViaApi } from '../../support/helpers';
+import { testData } from '../../api/services/TestDataService';
+import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Authentication — Register', () => {
-  // TC-AUTH-001
-  test('TC-AUTH-001: full registration creates user and workspace then redirects to /inicio with active workspace in sidebar', async ({
+  test('full registration creates user and workspace then redirects to /inicio with active workspace in sidebar', async ({
     registerPage,
     page,
   }) => {
@@ -20,14 +20,12 @@ test.describe('Authentication — Register', () => {
     await expect(page).toHaveURL(/\/inicio/);
     await expect(page.getByText(tenantName)).toBeVisible();
   });
-
-  // TC-AUTH-002
-  test('TC-AUTH-002: registration with existing email shows error message and stays on /register', async ({
+  test('registration with existing email shows error message and stays on /register', async ({
     registerPage,
     page,
   }) => {
     const email = generateEmail('auth002');
-    await createUserViaApi(email, 'Password123!', generateTenantName());
+    await testData.createAuthenticatedUser(email, 'Password123!', generateTenantName());
 
     await registerPage.goto();
     await registerPage.register({

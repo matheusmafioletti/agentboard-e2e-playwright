@@ -1,16 +1,10 @@
 import { test, expect } from '../../support/fixtures';
-import {
-  generateEmail,
-  generateTenantName,
-  createUserViaApi,
-  createSecondTenantViaApi,
-  setAuthInLocalStorage,
-} from '../../support/helpers';
-import { env } from '../../support/environment';
+import { testData } from '../../api/services/TestDataService';
+import { setAuthInLocalStorage } from '../../support/browser';
+import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Authentication — Session Management', () => {
-  // TC-AUTH-007
-  test('TC-AUTH-007: logout clears session and subsequent access to protected page redirects to /login', async ({
+  test('logout clears session and subsequent access to protected page redirects to /login', async ({
     dashboardPage,
     page,
   }) => {
@@ -18,7 +12,7 @@ test.describe('Authentication — Session Management', () => {
     const password = 'Password123!';
     const tenantName = generateTenantName();
 
-    const user = await createUserViaApi(email, password, tenantName);
+    const user = await testData.createAuthenticatedUser(email, password, tenantName);
     await setAuthInLocalStorage(page, user.jwt, {
       userId: user.userId,
       email: user.email,
@@ -36,9 +30,7 @@ test.describe('Authentication — Session Management', () => {
     await page.goto('/inicio');
     await expect(page).toHaveURL(/\/login/);
   });
-
-  // TC-AUTH-008
-  test('TC-AUTH-008: workspace switch via sidebar updates the active workspace', async ({
+  test('workspace switch via sidebar updates the active workspace', async ({
     page,
   }) => {
     const email = generateEmail('auth008');
@@ -46,16 +38,12 @@ test.describe('Authentication — Session Management', () => {
     const firstTenant = generateTenantName();
     const secondTenant = generateTenantName();
 
-    const user = await createUserViaApi(email, password, firstTenant);
-    await createSecondTenantViaApi(env.authApiUrl, user.jwt, secondTenant);
-
-    // Login via UI to establish multi-tenant session
+    const user = await testData.createAuthenticatedUser(email, password, firstTenant);
+    await testData.createSecondTenant(user.jwt, secondTenant);
     await page.goto('/login');
     await page.getByLabel(/e-mail|email/i).fill(email);
     await page.getByLabel(/senha|password/i).fill(password);
     await page.getByRole('button', { name: /entrar|sign in|login/i }).click();
-
-    // Select first tenant if picker appears
     const tenantPicker = page
       .getByRole('dialog')
       .or(page.getByTestId('tenant-picker'));
@@ -67,8 +55,6 @@ test.describe('Authentication — Session Management', () => {
 
     await expect(page).toHaveURL(/\/inicio/);
     await expect(page.getByTestId('workspace-name')).toContainText(firstTenant);
-
-    // Switch to second workspace
     const switcherButton = page.getByRole('button', {
       name: /trocar workspace|switch workspace|workspace/i,
     });
