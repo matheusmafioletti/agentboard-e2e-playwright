@@ -1,166 +1,76 @@
 # AgentBoard — E2E Tests (Playwright)
 
-[![E2E Tests](https://github.com/your-org/agentboard/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/agentboard/actions/workflows/ci.yml)
-
-End-to-end test suite for the AgentBoard Kanban platform using [Playwright](https://playwright.dev/).
-Covers the full user journey: register → login → tenant selection → board interaction → member invites.
-
----
+End-to-end test suite for AgentBoard using [Playwright](https://playwright.dev/).
 
 ## Prerequisites
 
 - Node.js 20 LTS
-- Running services: `auth-service` (`:8080`), `board-service` (`:8081`), `agentboard-web` (`:5173`)
-
----
+- Docker Compose v2 (for `@local` / `ENVIRONMENT=e2e`)
+- GHCR read access (`docker login ghcr.io`)
 
 ## Setup
 
 ```bash
-# 1. Install dependencies
 npm ci
-
-# 2. Install Playwright browsers
 npx playwright install --with-deps chromium
-
-# 3. Configure environment
-cp .env.example .env
-# Edit .env with your local values
+cp .env.example .env   # optional for native local dev
 ```
-
----
 
 ## Running Tests
 
 | Command | Description |
-|---|---|
-| `npm test` | Run all tests headless (Chromium) |
-| `npm run test:headed` | Run with visible browser window |
-| `npm run test:debug` | Open Playwright Inspector for step-by-step debug |
-| `npm run test:report` | Open the last HTML report |
-| `npm run lint` | ESLint check |
-| `npm run typecheck` | TypeScript compilation check |
+|---------|-------------|
+| `npm test` | All tests (default `ENVIRONMENT=local`) |
+| `npm run test:local` | `@local` tests against compose (`ENVIRONMENT=e2e`) |
+| `npm run test:staging` | `@staging` smoke against demo URL |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
 
-### Run a specific project or file
+### Full stack (recommended for @local)
 
-```bash
-# Chromium only
-npx playwright test --project=chromium
-
-# Single spec file
-npx playwright test tests/auth/login.spec.ts
-
-# Test matching a title pattern
-npx playwright test -g "successful login"
-
-# All browsers
-npx playwright test --project=chromium --project=firefox --project=webkit
-```
-
-### Allure report
+From workspace root:
 
 ```bash
-# Generate and open
-npx allure generate allure-results --clean -o allure-report
-npx allure open allure-report
+./scripts/run-e2e-local.sh playwright [--reset]
 ```
 
----
+Or manually:
 
-## Architecture
-
-### Page Object Model (POM)
-
-Every interactive UI surface has a dedicated Page Object under `page-objects/`:
-
-| Class | Route | Responsibility |
-|---|---|---|
-| `BasePage` | — | Shared `navigate`, `waitForPageLoad`, `takeScreenshot` |
-| `LoginPage` | `/login` | Email/password login, error assertion |
-| `RegisterPage` | `/register` | New user + tenant registration |
-| `BoardPage` | `/board` | Kanban: create items, drag-and-drop columns |
-| `InviteAcceptPage` | `/invite/accept` | Token-based invite acceptance |
-
-**Rule:** All locators live in Page Objects. Test files contain **zero** CSS selectors or `locator()` calls.
-
-### Fixtures Pattern (`support/fixtures.ts`)
-
-All tests import `{ test, expect }` from `../../support/fixtures`, never from `@playwright/test` directly.
-This allows Page Objects to be injected per-test without `beforeEach` boilerplate:
-
-```typescript
-// test file
-import { test, expect } from '../../support/fixtures';
-
-test('login works', async ({ loginPage, page }) => {
-  await loginPage.goto();
-  await loginPage.login('user@example.com', 'secret');
-  await expect(page).toHaveURL(/board/);
-});
+```bash
+cd ../agentboard-infra
+cp .env.e2e.example .env.e2e
+./scripts/e2e-up.sh && ./scripts/seed-e2e-data.sh
+cd ../agentboard-e2e-playwright
+npm run test:local
 ```
 
-### API Clients & Test Data Service (`api/`)
+## Environment presets
 
-HTTP calls are organized into service-specific clients that read base URLs from `support/environment.ts`:
+| `ENVIRONMENT` | Base URL |
+|---------------|----------|
+| `local` | `http://localhost:5173` (native dev) |
+| `e2e` | `http://localhost:8080` (Docker Compose) |
+| `staging` | `vars.BASE_URL` / demo |
 
-| Layer | Path | Responsibility |
-|---|---|---|
-| `BaseApiClient` | `api/clients/BaseApiClient.ts` | Shared `fetch`, JSON headers, error handling |
-| `AuthApiClient` | `api/clients/AuthApiClient.ts` | Register, login, tenants, invites |
-| `BoardApiClient` | `api/clients/BoardApiClient.ts` | Projects, work-items |
-| `TestDataService` | `api/services/TestDataService.ts` | High-level test setup workflows |
+Filter tags: `TEST_TAGS=@local` or `TEST_TAGS=@staging`.
 
-Tests import the singleton `testData` service for API setup — bypassing UI forms for fast, deterministic `beforeEach` hooks:
+## CI
 
-```typescript
-import { testData } from '../../api/services/TestDataService';
-import { generateEmail, generateTenantName } from '../../support/generators';
-import { setAuthInLocalStorage } from '../../support/browser';
+Workflow `.github/workflows/ci.yml`:
 
-const user = await testData.createAuthenticatedUser(email, password, generateTenantName());
-const project = await testData.createProject(user.jwt, user.tenantId, 'My Project');
-await setAuthInLocalStorage(page, user.jwt, { userId: user.userId, ... });
-```
+- **PR** → `@local` against compose (`e2e-latest` images)
+- **repository_dispatch** (`e2e-app-pr`) → compose with PR image SHA tags
+- **push main** → `@staging` smoke (no compose)
+- **workflow_dispatch** → choose `local` or `staging`
 
-Domain types live in `api/types/` (`auth.types.ts`, `board.types.ts`). Generators and browser helpers remain in `support/generators.ts` and `support/browser.ts`.
+### Secrets
 
----
+| Secret / Var | Purpose |
+|--------------|---------|
+| `GHCR_READ_TOKEN` | Pull private images (or `GITHUB_TOKEN`) |
+| `E2E_STAGING_USER_EMAIL` / `PASSWORD` | Seed user for `@staging` |
+| `vars.BASE_URL` | Staging demo URL |
 
-## Design Decisions
+## Tags
 
-### Why Playwright?
-
-- Native browser automation with true multi-browser support (Chromium, Firefox, WebKit)
-- Built-in auto-waiting eliminates manual `sleep` calls
-- First-class TypeScript support
-- Trace viewer + screenshot/video on failure out of the box
-
-### Why POM over inline selectors?
-
-Centralizing locators means a single selector change in the UI requires updating exactly **one** file.
-Test files describe **intent** (`loginPage.login()`), not implementation (`page.locator('#email').fill()`).
-
-### Why fixtures instead of `beforeEach` for Page Objects?
-
-Playwright's `test.extend` fixtures are composable, typed, and automatically scoped per test.
-They avoid the need for `let` variables at `describe` scope and remove ordering dependencies between hooks.
-
-### Why `fullyParallel: false`?
-
-AgentBoard flows are stateful (shared DB with tenant data). Running in parallel without proper test isolation
-would create race conditions. Workers are set to `1` locally and `2` in CI to balance speed and stability.
-
----
-
-## CI / GitHub Actions
-
-The workflow at `.github/workflows/ci.yml` runs on every push/PR to `main`:
-
-1. Installs dependencies (`npm ci`)
-2. Installs Chromium browser
-3. Lints (`npm run lint`)
-4. Type-checks (`npm run typecheck`)
-5. Runs E2E tests against `BASE_URL` (configurable via GitHub variable `STAGING_URL`)
-6. Uploads Allure results and Playwright HTML report as artifacts (30-day retention)
-
-Firefox and WebKit are available via `workflow_dispatch` but skipped in the default CI run for speed.
+Every test has exactly one of `@local` or `@staging`. See [e2e-tests.mdc](../../.cursor/rules/e2e-tests.mdc).

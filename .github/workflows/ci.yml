@@ -1,69 +1,184 @@
 name: E2E Tests — Playwright
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [e2e-app-pr]
   workflow_dispatch:
     inputs:
-      browser:
-        description: 'Browser to run tests'
-        required: false
-        default: 'chromium'
+      target_env:
+        description: Target environment
         type: choice
-        options:
-          - chromium
-          - firefox
-          - webkit
-          - all
+        options: [local, staging]
+        default: local
+      image_tag:
+        description: Image tag for local compose (latest or SHA)
+        required: false
+        default: latest
+
+env:
+  INFRA_REPO: matheusmafioletti/agentboard-infra
+  GHCR_REGISTRY: ghcr.io/matheusmafioletti
 
 jobs:
-  e2e:
+  resolve-env:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      target: ${{ steps.resolve.outputs.target }}
+      auth_tag: ${{ steps.resolve.outputs.auth_tag }}
+      board_tag: ${{ steps.resolve.outputs.board_tag }}
+      api_docs_tag: ${{ steps.resolve.outputs.api_docs_tag }}
+      web_tag: ${{ steps.resolve.outputs.web_tag }}
+      run_e2e: ${{ steps.resolve.outputs.run_e2e }}
+    steps:
+      - id: resolve
+        run: |
+          TARGET="local"
+          AUTH_TAG="latest"
+          BOARD_TAG="latest"
+          API_DOCS_TAG="latest"
+          WEB_TAG="e2e-latest"
+          RUN_E2E="true"
 
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET="${{ github.event.inputs.target_env }}"
+            if [[ "$TARGET" == "local" ]]; then
+              TAG="${{ github.event.inputs.image_tag }}"
+              if [[ -n "$TAG" && "$TAG" != "latest" ]]; then
+                AUTH_TAG="$TAG"
+                BOARD_TAG="$TAG"
+                API_DOCS_TAG="$TAG"
+                WEB_TAG="e2e-$TAG"
+              fi
+            fi
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            AUTH_TAG="${{ github.event.client_payload.auth_tag }}"
+            BOARD_TAG="${{ github.event.client_payload.board_tag }}"
+            API_DOCS_TAG="${{ github.event.client_payload.api_docs_tag }}"
+            WEB_TAG="${{ github.event.client_payload.web_tag }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            TARGET="staging"
+          fi
+
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "auth_tag=$AUTH_TAG" >> "$GITHUB_OUTPUT"
+          echo "board_tag=$BOARD_TAG" >> "$GITHUB_OUTPUT"
+          echo "api_docs_tag=$API_DOCS_TAG" >> "$GITHUB_OUTPUT"
+          echo "web_tag=$WEB_TAG" >> "$GITHUB_OUTPUT"
+          echo "run_e2e=$RUN_E2E" >> "$GITHUB_OUTPUT"
+
+  lint:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+  e2e-local:
+    needs: [resolve-env, lint]
+    if: needs.resolve-env.outputs.run_e2e == 'true' && needs.resolve-env.outputs.target == 'local'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout infra
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.INFRA_REPO }}
+          path: agentboard-infra
+          token: ${{ secrets.GHCR_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Run E2E tests
-        run: npm test -- --project=${{ github.event.inputs.browser || 'chromium' }}
+      - name: Start E2E stack
+        working-directory: agentboard-infra
         env:
-          ENVIRONMENT: staging
-          BASE_URL: ${{ vars.BASE_URL || 'https://agentboard.matheusmafioletti.com' }}
-          AUTH_API_URL: ${{ vars.AUTH_API_URL || 'https://agentboard.matheusmafioletti.com' }}
-          BOARD_API_URL: ${{ vars.BOARD_API_URL || 'https://agentboard.matheusmafioletti.com' }}
-          CI: true
+          AUTH_IMAGE_TAG: ${{ needs.resolve-env.outputs.auth_tag }}
+          BOARD_IMAGE_TAG: ${{ needs.resolve-env.outputs.board_tag }}
+          API_DOCS_IMAGE_TAG: ${{ needs.resolve-env.outputs.api_docs_tag }}
+          WEB_IMAGE_TAG: ${{ needs.resolve-env.outputs.web_tag }}
+        run: |
+          cp .env.e2e.example .env.e2e
+          chmod +x scripts/*.sh
+          ./scripts/e2e-up.sh
+          ./scripts/seed-e2e-data.sh
 
-      - name: Upload Allure results
-        uses: actions/upload-artifact@v4
+      - name: Run @local tests
+        env:
+          ENVIRONMENT: e2e
+          TEST_TAGS: '@local'
+          CI: true
+        run: npm run test:local -- --project=chromium
+
+      - name: Tear down E2E stack
+        if: always()
+        working-directory: agentboard-infra
+        run: ./scripts/e2e-down.sh
+
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: allure-results
           path: allure-results/
           retention-days: 30
 
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 30
+
+  e2e-staging:
+    needs: [resolve-env, lint]
+    if: needs.resolve-env.outputs.run_e2e == 'true' && needs.resolve-env.outputs.target == 'staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run @staging tests
+        env:
+          ENVIRONMENT: staging
+          TEST_TAGS: '@staging'
+          BASE_URL: ${{ vars.BASE_URL || 'https://agentboard.matheusmafioletti.com' }}
+          AUTH_API_URL: ${{ vars.AUTH_API_URL || 'https://agentboard.matheusmafioletti.com' }}
+          BOARD_API_URL: ${{ vars.BOARD_API_URL || 'https://agentboard.matheusmafioletti.com' }}
+          E2E_STAGING_USER_EMAIL: ${{ secrets.E2E_STAGING_USER_EMAIL }}
+          E2E_STAGING_USER_PASSWORD: ${{ secrets.E2E_STAGING_USER_PASSWORD }}
+          CI: true
+        run: npm run test:staging -- --project=chromium
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-staging
+          path: allure-results/
           retention-days: 30

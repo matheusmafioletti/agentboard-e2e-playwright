@@ -1,5 +1,10 @@
 import { env } from '../../support/environment';
-import type { InviteResult, TenantResult, UserCredentials } from '../types/auth.types';
+import type {
+  InviteResult,
+  SelectTenantResult,
+  TenantResult,
+  UserCredentials,
+} from '../types/auth.types';
 import { BaseApiClient } from './BaseApiClient';
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
@@ -124,5 +129,46 @@ export class AuthApiClient extends BaseApiClient {
       data.token;
 
     return { token: data.token, inviteId };
+  }
+
+  async acceptInvite(token: string, email: string, password: string): Promise<null> {
+    await this.request<Record<string, unknown>>(
+      `/auth/invites/${token}/accept`,
+      {
+        method: 'POST',
+        headers: this.jsonHeaders(),
+        body: JSON.stringify({ email, password }),
+      },
+      'Accept invite'
+    );
+    return null;
+  }
+
+  async selectTenant(
+    email: string,
+    password: string,
+    tenantId: string
+  ): Promise<SelectTenantResult> {
+    return this.request<SelectTenantResult>(
+      '/auth/select-tenant',
+      {
+        method: 'POST',
+        headers: this.jsonHeaders(),
+        body: JSON.stringify({ email, password, tenantId }),
+      },
+      'Select tenant'
+    );
+  }
+
+  async cancelInvite(jwt: string, tenantId: string, inviteId: string): Promise<null> {
+    await this.request<Record<string, unknown>>(
+      `/auth/tenants/${tenantId}/invites/${inviteId}`,
+      {
+        method: 'DELETE',
+        headers: this.jsonHeaders(jwt),
+      },
+      'Cancel invite'
+    );
+    return null;
   }
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '../../support/fixtures';
+import { authenticateStagingUser } from '../../support/staging-auth';
 import { testData } from '../../api/services/TestDataService';
 import { setAuthInLocalStorage } from '../../support/browser';
 import { generateEmail, generateTenantName } from '../../support/generators';
@@ -32,9 +33,11 @@ test.describe('Kanban Board — Work Item Flow', () => {
       role: user.role,
     });
   });
-  test('default board displays TASK columns (New, Active, Closed)', async ({
+  test('default board displays TASK columns (New, Active, Closed)', { tag: '@staging' }, async ({
     boardPage,
+    page,
   }) => {
+    await authenticateStagingUser(page);
     await boardPage.goto({ type: 'TASK' });
     await expect(boardPage.boardContainer).toBeVisible();
 
@@ -42,7 +45,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.columnByStatus('active')).toBeVisible();
     await expect(boardPage.columnByStatus('closed')).toBeVisible();
   });
-  test('switching board type changes visible columns', async ({ boardPage }) => {
+  test('switching board type changes visible columns', { tag: '@local' }, async ({ boardPage }) => {
     await boardPage.goto({ type: 'FEATURE' });
     await expect(boardPage.boardContainer).toBeVisible();
     const featureColumnCount = await boardPage.getColumnCount();
@@ -56,7 +59,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     const taskColumnCount = await boardPage.getColumnCount();
     expect(taskColumnCount).toBe(3);
   });
-  test('creating a work item places it in the initial column', async ({
+  test('creating a work item places it in the initial column', { tag: '@local' }, async ({
     boardPage,
   }) => {
     await boardPage.goto({ type: 'TASK' });
@@ -69,7 +72,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       boardPage.columnByStatus('new').getByRole('article', { name: title })
     ).toBeVisible();
   });
-  test('drag-and-drop moves card to target column and persists after reload', async ({
+  test('drag-and-drop moves card to target column and persists after reload', { tag: '@local' }, async ({
     boardPage,
     page,
   }) => {
@@ -95,7 +98,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       boardPage.columnByStatus('active').getByRole('article', { name: title })
     ).toBeVisible();
   });
-  test('parent filter shows only tasks of selected user story; clearing shows all', async ({
+  test('parent filter shows only tasks of selected user story; clearing shows all', { tag: '@local' }, async ({
     boardPage,
   }) => {
     const featureTitle = `Feature-${Date.now()}`;
@@ -153,7 +156,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardByTitle(task1)).toBeVisible();
     await expect(boardPage.cardByTitle(task2)).toBeVisible();
   });
-  test('card displays display key, type badge and parent reference', async ({
+  test('card displays display key, type badge and parent reference', { tag: '@local' }, async ({
     boardPage,
   }) => {
     const featureTitle = `Feature-${Date.now()}`;
@@ -183,7 +186,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardBadge(storyTitle)).toBeVisible();
     await expect(boardPage.cardParentRef(storyTitle)).toBeVisible();
   });
-  test('"view child board" on Feature navigates to USER_STORY board with parent pre-selected', async ({
+  test('"view child board" on Feature navigates to USER_STORY board with parent pre-selected', { tag: '@local' }, async ({
     boardPage,
     page,
   }) => {
@@ -203,7 +206,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       new RegExp(`type=USER_STORY.*parentId=${feature.id}|parentId=${feature.id}.*type=USER_STORY`)
     );
   });
-  test('clicking a card opens CardModal with correct title, type and status', async ({
+  test('clicking a card opens CardModal with correct title, type and status', { tag: '@local' }, async ({
     boardPage,
   }) => {
     const taskTitle = `TaskModal-${Date.now()}`;

@@ -3,7 +3,7 @@ import { testData } from '../../api/services/TestDataService';
 import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Invite Flow', () => {
-  test('invited user can accept invite and join tenant', async ({
+  test('invited user can accept invite and join tenant', { tag: '@local' }, async ({
     inviteAcceptPage,
     registerPage,
     page,
@@ -33,12 +33,12 @@ test.describe('Invite Flow', () => {
     await expect(page).toHaveURL(/board|dashboard/);
   });
 
-  test('invalid invite token shows error', async ({ inviteAcceptPage }) => {
+  test('invalid invite token shows error', { tag: '@local' }, async ({ inviteAcceptPage }) => {
     await inviteAcceptPage.gotoWithToken('invalid-token-xyz-000');
     await expect(inviteAcceptPage.errorMessage).toBeVisible();
   });
 
-  test('invited user can decline invite', async ({
+  test('invited user can decline invite', { tag: '@local' }, async ({
     inviteAcceptPage,
     page,
   }) => {

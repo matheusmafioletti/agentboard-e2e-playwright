@@ -23,6 +23,22 @@ export class TestDataService {
     return this.authClient.createInvite(jwt, tenantId, email);
   }
 
+  acceptInvite(token: string, email: string, password: string): Promise<null> {
+    return this.authClient.acceptInvite(token, email, password);
+  }
+
+  selectTenant(
+    email: string,
+    password: string,
+    tenantId: string
+  ): Promise<{ token: string }> {
+    return this.authClient.selectTenant(email, password, tenantId);
+  }
+
+  cancelInvite(jwt: string, tenantId: string, inviteId: string): Promise<null> {
+    return this.authClient.cancelInvite(jwt, tenantId, inviteId);
+  }
+
   createProject(jwt: string, tenantId: string, name: string): Promise<ProjectResult> {
     return this.boardClient.createProject(jwt, tenantId, name);
   }

@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
+    "test:local": "cross-env ENVIRONMENT=e2e TEST_TAGS=@local playwright test",
+    "test:staging": "cross-env ENVIRONMENT=staging TEST_TAGS=@staging playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
@@ -17,6 +19,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "allure-playwright": "^3.0.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
     "eslint": "^8.57.0",
     "typescript": "^5.4.0"

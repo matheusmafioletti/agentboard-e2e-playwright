@@ -1,4 +1,5 @@
 import { test, expect } from '../../support/fixtures';
+import { authenticateStagingUser } from '../../support/staging-auth';
 import { testData } from '../../api/services/TestDataService';
 import { setAuthInLocalStorage } from '../../support/browser';
 import { generateEmail, generateTenantName } from '../../support/generators';
@@ -29,9 +30,11 @@ test.describe('Items List View', () => {
       role: user.role,
     });
   });
-  test('/itens shows table with Tipo, Título, Status columns', async ({
+  test('/itens shows table with Tipo, Título, Status columns', { tag: '@staging' }, async ({
     itemsPage,
+    page,
   }) => {
+    await authenticateStagingUser(page);
     await itemsPage.goto();
     await expect(itemsPage.itemsTable).toBeVisible();
 
@@ -40,7 +43,7 @@ test.describe('Items List View', () => {
     await expect(headers.filter({ hasText: /título|title/i })).toBeVisible();
     await expect(headers.filter({ hasText: /status/i })).toBeVisible();
   });
-  test('type filter shows only items of selected type; clearing shows all', async ({
+  test('type filter shows only items of selected type; clearing shows all', { tag: '@local' }, async ({
     itemsPage,
     page,
   }) => {
@@ -76,7 +79,7 @@ test.describe('Items List View', () => {
     await expect(page.getByText(featureTitle)).toBeVisible();
     await expect(page.getByText(taskTitle)).toBeVisible();
   });
-  test('clicking an item opens detail with same ID', async ({
+  test('clicking an item opens detail with same ID', { tag: '@local' }, async ({
     itemsPage,
     page,
   }) => {
@@ -98,7 +101,7 @@ test.describe('Items List View', () => {
       detailPanel.getByText(item.id).or(detailPanel.getByText(itemTitle))
     ).toBeVisible();
   });
-  test('tree view expands Feature to show child US, then expand US to show child Tasks', async ({
+  test('tree view expands Feature to show child US, then expand US to show child Tasks', { tag: '@local' }, async ({
     itemsPage,
     page,
   }) => {

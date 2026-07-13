@@ -4,7 +4,7 @@ import { setAuthInLocalStorage } from '../../support/browser';
 import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Users & Invites Management', () => {
-  test('admin sees members list with role and date on /usuarios', async ({
+  test('admin sees members list with role and date on /usuarios', { tag: '@local' }, async ({
     usersPage,
     page,
   }) => {
@@ -23,7 +23,7 @@ test.describe('Users & Invites Management', () => {
     await expect(usersPage.membersList.getByText(email)).toBeVisible();
     await expect(usersPage.membersList.getByText(/admin/i)).toBeVisible();
   });
-  test('user with USER role is blocked from accessing /usuarios', async ({
+  test('user with USER role is blocked from accessing /usuarios', { tag: '@local' }, async ({
     page,
   }) => {
     const email = generateEmail('users002');
@@ -43,7 +43,7 @@ test.describe('Users & Invites Management', () => {
       (await page.getByText(/acesso negado|forbidden|não autorizado|unauthorized/i).isVisible());
     expect(isBlocked).toBe(true);
   });
-  test('admin creates invite and it appears in pending invites list', async ({
+  test('admin creates invite and it appears in pending invites list', { tag: '@local' }, async ({
     usersPage,
     page,
   }) => {
@@ -66,7 +66,7 @@ test.describe('Users & Invites Management', () => {
     const pendingEmails = await usersPage.getPendingInviteEmails();
     expect(pendingEmails.some((e) => e.includes(inviteeEmail))).toBe(true);
   });
-  test('admin cancels invite and it is removed from pending list', async ({
+  test('admin cancels invite and it is removed from pending list', { tag: '@local' }, async ({
     usersPage,
     page,
   }) => {
@@ -91,7 +91,7 @@ test.describe('Users & Invites Management', () => {
 
     await expect(usersPage.invitesList.getByText(inviteeEmail)).not.toBeVisible();
   });
-  test('new user accepts invite and is authenticated in inviting tenant', async ({
+  test('new user accepts invite and is authenticated in inviting tenant', { tag: '@local' }, async ({
     inviteAcceptPage,
     page,
   }) => {
@@ -112,7 +112,7 @@ test.describe('Users & Invites Management', () => {
     await inviteAcceptPage.acceptInvite();
     await expect(page).toHaveURL(/\/inicio|\/login|\/register/);
   });
-  test('invalid invite token shows error and no accept form', async ({
+  test('invalid invite token shows error and no accept form', { tag: '@local' }, async ({
     inviteAcceptPage,
   }) => {
     await inviteAcceptPage.gotoWithToken('invalid-token-xyz-000000');

@@ -20,3 +20,11 @@ export interface InviteResult {
   token: string;
   inviteId: string;
 }
+
+export interface SelectTenantResult {
+  token: string;
+}
+
+export interface SelectTenantResult {
+  token: string;
+}
