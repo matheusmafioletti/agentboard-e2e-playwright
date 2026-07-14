@@ -11,39 +11,53 @@ export class BoardPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.createItemButton = page.getByRole('button', { name: /criar|new|add item|novo item/i });
-    this.boardContainer = page.getByTestId('kanban-board');
+    this.createItemButton = page.getByRole('button', { name: /novo item/i });
+    this.boardContainer = page.locator('div.flex.gap-3.overflow-x-auto');
     this.cardModal = page.getByRole('dialog');
-    this.parentFilter = page.getByTestId('parent-filter-selector');
+    this.parentFilter = page.getByRole('button', { name: /filtrar|filtro|parent/i });
+  }
+
+  private statusLabel(status: string): string {
+    return status.toUpperCase().replace(/\s+/g, '_').replace(/-/g, '_');
   }
 
   columnByStatus(status: string): Locator {
-    return this.page.getByTestId(`column-${status.toLowerCase().replace(/\s+/g, '-')}`);
+    const label = this.statusLabel(status);
+    return this.page.locator('div.w-\\[220px\\]').filter({
+      has: this.page.getByText(label, { exact: true }),
+    });
   }
 
   cardByTitle(title: string): Locator {
-    return this.page.getByRole('article', { name: title });
+    return this.page
+      .locator('div.rounded-card')
+      .filter({ has: this.page.getByText(title, { exact: true }) })
+      .first();
+  }
+
+  cardInColumn(columnStatus: string, title: string): Locator {
+    return this.columnByStatus(columnStatus).getByText(title, { exact: true });
   }
 
   cardBadge(title: string): Locator {
-    return this.cardByTitle(title).getByTestId('type-badge');
+    return this.cardByTitle(title).locator('span.inline-flex').first();
   }
 
   cardParentRef(title: string): Locator {
-    return this.cardByTitle(title).getByTestId('parent-ref');
+    return this.cardByTitle(title).getByTestId('card-open-parent-link');
   }
 
   cardDisplayKey(title: string): Locator {
-    return this.cardByTitle(title).getByTestId('display-key');
+    return this.cardByTitle(title).locator('p.text-\\[11px\\].font-semibold').first();
   }
 
   async getCardCount(status: string): Promise<number> {
     const column = this.columnByStatus(status);
-    return column.getByRole('article').count();
+    return column.locator('p.text-\\[13px\\].font-medium').count();
   }
 
   async getColumnCount(): Promise<number> {
-    return this.boardContainer.locator('[data-testid^="column-"]').count();
+    return this.boardContainer.locator('div.w-\\[220px\\]').count();
   }
 
   async createWorkItem(
@@ -70,7 +84,7 @@ export class BoardPage extends BasePage {
       }
     }
 
-    await modal.getByRole('button', { name: /salvar|criar|save|create/i }).click();
+    await modal.getByRole('button', { name: /^criar$/i }).click();
     await modal.waitFor({ state: 'hidden' });
   }
 

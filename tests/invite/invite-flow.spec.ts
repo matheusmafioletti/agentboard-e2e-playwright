@@ -26,6 +26,7 @@ test.describe('Invite Flow', () => {
       password: 'Password123!',
       tenantName: `${tenantName}-invitee-workspace`,
     });
+    await registerPage.continueToDashboard();
 
     await inviteAcceptPage.gotoWithToken(inviteToken);
     await inviteAcceptPage.acceptInvite();

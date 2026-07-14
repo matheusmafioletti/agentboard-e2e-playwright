@@ -17,6 +17,7 @@ test.describe('Authentication — Register', () => {
         tenantName,
       });
 
+      await registerPage.continueToDashboard();
       await expect(page).toHaveURL(/\/inicio/);
       await expect(page.getByText(tenantName)).toBeVisible();
     }

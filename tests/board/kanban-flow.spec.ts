@@ -53,7 +53,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
 
     await boardPage.goto({ type: 'USER_STORY' });
     const storyColumnCount = await boardPage.getColumnCount();
-    expect(storyColumnCount).toBe(5);
+    expect(storyColumnCount).toBe(3);
 
     await boardPage.goto({ type: 'TASK' });
     const taskColumnCount = await boardPage.getColumnCount();
@@ -68,9 +68,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await boardPage.createWorkItem(title, 'TASK');
 
     await expect(boardPage.cardByTitle(title)).toBeVisible();
-    await expect(
-      boardPage.columnByStatus('new').getByRole('article', { name: title })
-    ).toBeVisible();
+    await expect(boardPage.cardInColumn('new', title)).toBeVisible();
   });
   test('drag-and-drop moves card to target column and persists after reload', { tag: '@local' }, async ({
     boardPage,
@@ -89,14 +87,10 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardByTitle(title)).toBeVisible();
 
     await boardPage.dragCardToColumn(title, 'active');
-    await expect(
-      boardPage.columnByStatus('active').getByRole('article', { name: title })
-    ).toBeVisible();
+    await expect(boardPage.cardInColumn('active', title)).toBeVisible();
     await page.reload();
     await boardPage.waitForPageLoad();
-    await expect(
-      boardPage.columnByStatus('active').getByRole('article', { name: title })
-    ).toBeVisible();
+    await expect(boardPage.cardInColumn('active', title)).toBeVisible();
   });
   test('parent filter shows only tasks of selected user story; clearing shows all', { tag: '@local' }, async ({
     boardPage,

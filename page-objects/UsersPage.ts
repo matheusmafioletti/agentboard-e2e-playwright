@@ -8,8 +8,14 @@ export class UsersPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.membersList = page.getByTestId('members-list');
-    this.invitesList = page.getByTestId('invites-list');
+    this.membersList = page
+      .locator('section')
+      .filter({ hasText: /^Membros \(\d+\)$/ })
+      .locator('.rounded-card');
+    this.invitesList = page
+      .locator('section')
+      .filter({ hasText: /^Convites pendentes \(\d+\)$/ })
+      .locator('.rounded-card');
     this.createInviteButton = page.getByRole('button', { name: /novo convite|invite/i });
   }
 
@@ -19,23 +25,23 @@ export class UsersPage extends BasePage {
 
   async createInvite(email: string): Promise<void> {
     await this.createInviteButton.click();
-    const modal = this.page.getByRole('dialog');
+    const modal = this.page.getByRole('heading', { name: /novo convite/i }).locator('../..');
     await modal.waitFor({ state: 'visible' });
-    await modal.getByLabel(/e-mail|email/i).fill(email);
-    await modal.getByRole('button', { name: /enviar|confirmar|send|confirm/i }).click();
-    await modal.waitFor({ state: 'hidden' });
+    await this.page.getByLabel(/e-mail|email/i).fill(email);
+    await this.page.getByRole('button', { name: /gerar link/i }).click();
+    await this.page.getByRole('button', { name: /fechar/i }).click();
   }
 
   async cancelInvite(email: string): Promise<void> {
-    const inviteRow = this.invitesList.getByText(email).locator('..');
+    const inviteRow = this.invitesList.locator('div.flex').filter({ hasText: email });
     await inviteRow.getByRole('button', { name: /cancelar|cancel/i }).click();
   }
 
   async getMemberEmails(): Promise<string[]> {
-    return this.membersList.getByTestId('member-email').allInnerTexts();
+    return this.membersList.locator('p.text-\\[11px\\]').allInnerTexts();
   }
 
   async getPendingInviteEmails(): Promise<string[]> {
-    return this.invitesList.getByTestId('invite-email').allInnerTexts();
+    return this.invitesList.locator('span.text-sm').allInnerTexts();
   }
 }

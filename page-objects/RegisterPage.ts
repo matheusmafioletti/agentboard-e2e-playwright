@@ -15,17 +15,17 @@ export class RegisterPage extends BasePage {
   readonly tenantNameInput: Locator;
   readonly submitButton: Locator;
   readonly errorMessage: Locator;
-  readonly successMessage: Locator;
+  readonly continueButton: Locator;
 
   constructor(page: Page) {
     super(page);
     this.nameInput = page.getByLabel(/nome|name/i);
     this.emailInput = page.getByLabel(/e-mail|email/i);
     this.passwordInput = page.getByLabel(/senha|password/i);
-    this.tenantNameInput = page.getByLabel(/organização|organization|workspace|tenant/i);
-    this.submitButton = page.getByRole('button', { name: /cadastrar|registrar|sign up|register/i });
-    this.errorMessage = page.getByRole('alert');
-    this.successMessage = page.getByRole('status');
+    this.tenantNameInput = page.getByLabel(/time\s*\/\s*empresa|organização|organization|workspace|tenant/i);
+    this.submitButton = page.getByRole('button', { name: /criar conta|cadastrar|registrar|sign up|register/i });
+    this.errorMessage = page.getByText(/e-mail já cadastrado|falha no cadastro/i);
+    this.continueButton = page.getByRole('button', { name: /ir para o início/i });
   }
 
   async goto(): Promise<void> {
@@ -38,5 +38,9 @@ export class RegisterPage extends BasePage {
     await this.passwordInput.fill(data.password);
     await this.tenantNameInput.fill(data.tenantName);
     await this.submitButton.click();
+  }
+
+  async continueToDashboard(): Promise<void> {
+    await this.continueButton.click();
   }
 }
