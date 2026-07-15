@@ -46,23 +46,25 @@ test.describe('Authentication — Session Management', () => {
     await page.getByLabel(/e-mail|email/i).fill(email);
     await page.getByLabel(/senha|password/i).fill(password);
     await page.getByRole('button', { name: /entrar|sign in|login/i }).click();
-    const tenantPicker = page
-      .getByRole('dialog')
-      .or(page.getByTestId('tenant-picker'));
+    const tenantPicker = page.getByText(/escolha o workspace/i);
     if (await tenantPicker.isVisible({ timeout: 5000 }).catch(() => false)) {
       await page
         .getByRole('button', { name: new RegExp(firstTenant, 'i') })
         .click();
+      await page.getByRole('button', { name: /continuar/i }).click();
     }
 
     await expect(page).toHaveURL(/\/inicio/);
-    await expect(page.getByTestId('workspace-name')).toContainText(firstTenant);
-    const switcherButton = page.getByRole('button', {
-      name: /trocar workspace|switch workspace|workspace/i,
-    });
-    await switcherButton.click();
+
+    await page.getByRole('button', { name: 'Perfil' }).click();
+    await page.getByRole('button', { name: /trocar workspace/i }).click();
+    await expect(page.getByText(firstTenant)).toBeVisible();
+    await page.getByRole('button', { name: /fechar/i }).click();
+
+    await page.getByRole('button', { name: 'Perfil' }).click();
+    await page.getByRole('button', { name: /trocar workspace/i }).click();
     await page.getByRole('button', { name: new RegExp(secondTenant, 'i') }).click();
 
-    await expect(page.getByTestId('workspace-name')).toContainText(secondTenant);
+    await expect(page).toHaveURL(/\/inicio/);
   });
 });

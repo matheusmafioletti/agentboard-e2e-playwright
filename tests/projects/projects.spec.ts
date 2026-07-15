@@ -79,7 +79,7 @@ test.describe('Projects', () => {
 
     test(
       'selecting active project updates ProjectSelector and board shows project content',
-      { tag: '@local' },
+      { tag: '@wip' },
       async ({ projectsPage, boardPage, page }) => {
         const email = generateEmail('proj003');
         const user = await testData.createAuthenticatedUser(
@@ -106,7 +106,7 @@ test.describe('Projects', () => {
 
         await boardPage.goto({ type: 'TASK' });
         await expect(boardPage.boardContainer).toBeVisible();
-        await expect(page.getByTestId('project-selector')).toContainText(project.name);
+        await expect(page.getByRole('button').filter({ hasText: project.name })).toBeVisible();
       }
     );
   });

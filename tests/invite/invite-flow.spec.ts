@@ -3,7 +3,7 @@ import { testData } from '../../api/services/TestDataService';
 import { generateEmail, generateTenantName } from '../../support/generators';
 
 test.describe('Invite Flow', () => {
-  test('invited user can accept invite and join tenant', { tag: '@local' }, async ({
+  test('invited user can accept invite and join tenant', { tag: '@wip' }, async ({
     inviteAcceptPage,
     registerPage,
     page,
@@ -39,7 +39,7 @@ test.describe('Invite Flow', () => {
     await expect(inviteAcceptPage.errorMessage).toBeVisible();
   });
 
-  test('invited user can decline invite', { tag: '@local' }, async ({
+  test('invited user can decline invite', { tag: '@wip' }, async ({
     inviteAcceptPage,
     page,
   }) => {

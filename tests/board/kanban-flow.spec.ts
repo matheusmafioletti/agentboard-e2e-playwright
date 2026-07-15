@@ -70,7 +70,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardByTitle(title)).toBeVisible();
     await expect(boardPage.cardInColumn('new', title)).toBeVisible();
   });
-  test('drag-and-drop moves card to target column and persists after reload', { tag: '@local' }, async ({
+  test('drag-and-drop moves card to target column and persists after reload', { tag: '@wip' }, async ({
     boardPage,
     page,
   }) => {

@@ -32,14 +32,13 @@ test.describe('Authentication — Login', () => {
       await loginPage.goto();
       await loginPage.login(email, password);
 
-      const tenantPicker = page
-        .getByRole('dialog')
-        .or(page.getByTestId('tenant-picker'));
+      const tenantPicker = page.getByText(/escolha o workspace/i);
       await expect(tenantPicker).toBeVisible();
 
       await page
         .getByRole('button', { name: new RegExp(firstTenant, 'i') })
         .click();
+      await page.getByRole('button', { name: /continuar/i }).click();
 
       await expect(page).toHaveURL(/\/inicio/);
     }

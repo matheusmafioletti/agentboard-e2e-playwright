@@ -31,7 +31,7 @@ export class BoardApiClient extends BaseApiClient {
     type: WorkItemType,
     parentId?: string
   ): Promise<WorkItemResult> {
-    const body: Record<string, string> = { title, type };
+    const body: Record<string, string | number> = { title, type, priority: 1 };
     if (parentId) {
       body['parentId'] = parentId;
     }

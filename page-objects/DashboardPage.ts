@@ -10,11 +10,11 @@ export class DashboardPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.summaryCards = page.getByTestId('summary-card');
-    this.workspaceName = page.getByTestId('workspace-name');
-    this.profileButton = page.getByRole('button', { name: /perfil|profile|menu/i });
-    this.logoutButton = page.getByRole('button', { name: /sair|logout|sign out/i });
-    this.workspaceSwitcher = page.getByRole('button', { name: /trocar workspace|switch workspace|workspace/i });
+    this.summaryCards = page.locator('.grid.grid-cols-1.sm\\:grid-cols-3.gap-4 > div.rounded-card');
+    this.workspaceName = page.getByText(/workspace atual:/i);
+    this.profileButton = page.getByRole('button', { name: 'Perfil' });
+    this.logoutButton = page.getByRole('button', { name: /^sair$/i });
+    this.workspaceSwitcher = page.getByRole('button', { name: /trocar workspace/i });
   }
 
   getNavLink(name: string | RegExp): Locator {
@@ -32,7 +32,8 @@ export class DashboardPage extends BasePage {
   }
 
   async switchWorkspace(workspaceName: string): Promise<void> {
-    await this.workspaceSwitcher.click();
-    await this.page.getByRole('button', { name: workspaceName }).click();
+    await this.profileButton.click();
+    await this.page.getByRole('button', { name: /trocar workspace/i }).click();
+    await this.page.getByRole('button', { name: new RegExp(workspaceName, 'i') }).click();
   }
 }

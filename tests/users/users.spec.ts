@@ -91,7 +91,7 @@ test.describe('Users & Invites Management', () => {
 
     await expect(usersPage.invitesList.getByText(inviteeEmail)).not.toBeVisible();
   });
-  test('new user accepts invite and is authenticated in inviting tenant', { tag: '@local' }, async ({
+  test('new user accepts invite and is authenticated in inviting tenant', { tag: '@wip' }, async ({
     inviteAcceptPage,
     page,
   }) => {

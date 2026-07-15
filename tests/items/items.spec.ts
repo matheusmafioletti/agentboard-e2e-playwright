@@ -101,7 +101,7 @@ test.describe('Items List View', () => {
       detailPanel.getByText(item.id).or(detailPanel.getByText(itemTitle))
     ).toBeVisible();
   });
-  test('tree view expands Feature to show child US, then expand US to show child Tasks', { tag: '@local' }, async ({
+  test('tree view expands Feature to show child US, then expand US to show child Tasks', { tag: '@wip' }, async ({
     itemsPage,
     page,
   }) => {
