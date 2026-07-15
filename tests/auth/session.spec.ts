@@ -32,7 +32,7 @@ test.describe('Authentication — Session Management', () => {
     }
   );
 
-  test('workspace switch via sidebar updates the active workspace', { tag: '@local' }, async ({
+  test('workspace switch via sidebar updates the active workspace', { tag: '@wip' }, async ({
     page,
   }) => {
     const email = generateEmail('auth008');

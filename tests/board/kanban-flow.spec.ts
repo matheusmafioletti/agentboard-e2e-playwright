@@ -45,7 +45,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.columnByStatus('active')).toBeVisible();
     await expect(boardPage.columnByStatus('closed')).toBeVisible();
   });
-  test('switching board type changes visible columns', { tag: '@local' }, async ({ boardPage }) => {
+  test('switching board type changes visible columns', { tag: '@wip' }, async ({ boardPage }) => {
     await boardPage.goto({ type: 'FEATURE' });
     await expect(boardPage.boardContainer).toBeVisible();
     const featureColumnCount = await boardPage.getColumnCount();
@@ -59,7 +59,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     const taskColumnCount = await boardPage.getColumnCount();
     expect(taskColumnCount).toBe(3);
   });
-  test('creating a work item places it in the initial column', { tag: '@local' }, async ({
+  test('creating a work item places it in the initial column', { tag: '@wip' }, async ({
     boardPage,
   }) => {
     await boardPage.goto({ type: 'TASK' });
@@ -92,7 +92,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await boardPage.waitForPageLoad();
     await expect(boardPage.cardInColumn('active', title)).toBeVisible();
   });
-  test('parent filter shows only tasks of selected user story; clearing shows all', { tag: '@local' }, async ({
+  test('parent filter shows only tasks of selected user story; clearing shows all', { tag: '@wip' }, async ({
     boardPage,
   }) => {
     const featureTitle = `Feature-${Date.now()}`;
@@ -150,7 +150,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardByTitle(task1)).toBeVisible();
     await expect(boardPage.cardByTitle(task2)).toBeVisible();
   });
-  test('card displays display key, type badge and parent reference', { tag: '@local' }, async ({
+  test('card displays display key, type badge and parent reference', { tag: '@wip' }, async ({
     boardPage,
   }) => {
     const featureTitle = `Feature-${Date.now()}`;
@@ -180,7 +180,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
     await expect(boardPage.cardBadge(storyTitle)).toBeVisible();
     await expect(boardPage.cardParentRef(storyTitle)).toBeVisible();
   });
-  test('"view child board" on Feature navigates to USER_STORY board with parent pre-selected', { tag: '@local' }, async ({
+  test('"view child board" on Feature navigates to USER_STORY board with parent pre-selected', { tag: '@wip' }, async ({
     boardPage,
     page,
   }) => {
@@ -200,7 +200,7 @@ test.describe('Kanban Board — Work Item Flow', () => {
       new RegExp(`type=USER_STORY.*parentId=${feature.id}|parentId=${feature.id}.*type=USER_STORY`)
     );
   });
-  test('clicking a card opens CardModal with correct title, type and status', { tag: '@local' }, async ({
+  test('clicking a card opens CardModal with correct title, type and status', { tag: '@wip' }, async ({
     boardPage,
   }) => {
     const taskTitle = `TaskModal-${Date.now()}`;

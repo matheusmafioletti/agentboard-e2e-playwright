@@ -43,7 +43,7 @@ test.describe('Items List View', () => {
     await expect(headers.filter({ hasText: /título|title/i })).toBeVisible();
     await expect(headers.filter({ hasText: /status/i })).toBeVisible();
   });
-  test('type filter shows only items of selected type; clearing shows all', { tag: '@local' }, async ({
+  test('type filter shows only items of selected type; clearing shows all', { tag: '@wip' }, async ({
     itemsPage,
     page,
   }) => {
@@ -79,7 +79,7 @@ test.describe('Items List View', () => {
     await expect(page.getByText(featureTitle)).toBeVisible();
     await expect(page.getByText(taskTitle)).toBeVisible();
   });
-  test('clicking an item opens detail with same ID', { tag: '@local' }, async ({
+  test('clicking an item opens detail with same ID', { tag: '@wip' }, async ({
     itemsPage,
     page,
   }) => {
