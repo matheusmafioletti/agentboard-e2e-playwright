@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
-    "test:local": "cross-env ENVIRONMENT=e2e TEST_TAGS=@local playwright test",
+    "test:local": "cross-env ENVIRONMENT=e2e TEST_TAGS=@local playwright test tests/auth",
     "test:staging": "cross-env ENVIRONMENT=staging TEST_TAGS=@staging playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
